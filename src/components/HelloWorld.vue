@@ -47,7 +47,7 @@ const props = defineProps<{
   modelValue: MyData;
 }>();
 const myData = reactive<MyData>(props.modelValue);
-const miness = ref(myData.mines ?? 10);
+const miness = ref(myData.mines ?? 20);
 const initrow = ref(myData.row ?? 10);
 const initcol = ref(myData.col ?? 10);
 const buttonRefs = ref<HTMLButtonElement[][]>([]);
