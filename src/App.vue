@@ -1,10 +1,30 @@
+<template>
+  {{ myData }}
+  <HelloWorld :modelValue="myData" :key="componentKey" />
+  <InputData @update="setMines" />
+</template>
+
 <script setup lang="ts">
 import HelloWorld from "./components/HelloWorld.vue";
-</script>
+import InputData from "./components/InputData.vue";
+import { reactive, ref } from "vue";
+import { MyData } from "./components/modal/InputData.ts";
+import CryptoJS from "crypto-js";
 
-<template>
-  <HelloWorld />
-</template>
+const myData = reactive<MyData>({});
+const componentKey = ref("");
+
+function setMines(data: MyData) {
+  Object.assign(myData, data);
+  let key = JSON.stringify(data);
+  componentKey.value = hashString(key);
+}
+
+function hashString(input: string) {
+  const hash = CryptoJS.SHA256(input).toString();
+  return hash;
+}
+</script>
 
 <style scoped>
 .logo {

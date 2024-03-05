@@ -1,47 +1,72 @@
 <template>
   <div class="bordbase">
-    <div style="display: flex" v-for="i in initrow" :key="i">
-      <button
-        :class="{
-          isMine: false,
-          isSave: true,
-          isOpen: false,
-          isNextMines: false,
-        }"
-        v-for="j in initcol"
-        :key="`${i}${j}`"
-        @click="
-          () => {
-            CheckMines(i, j);
-          }
-        "
-        :ref="(el) => setButtonRef(el, i, j)"
-      ></button>
+    <div style="display: flex">
+      <div style="width: 33%; height: 80px">
+        <span>旗子不限制{{ miness }}</span>
+      </div>
+      <div style="width: 33%; height: 80px">
+        <!-- <img :src="currentpng" /> -->
+      </div>
+      <div style="width: 33%; height: 80px">{{ clickCount }}</div>
+    </div>
+    <hr />
+    <div v-if="restart">
+      <div style="display: flex" v-for="i in initrow" :key="i">
+        <button
+          :class="{
+            isMine: false,
+            isSave: true,
+            isOpen: false,
+            isNextMines: false,
+          }"
+          v-for="j in initcol"
+          :key="`${i}${j}`"
+          @click.left="
+            () => {
+              CheckMines(i, j);
+            }
+          "
+          @click.right.prevent="
+            () => {
+              handleRightClick(i, j);
+            }
+          "
+          :ref="(el) => setButtonRef(el, i, j)"
+        ></button>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import JSConfetti from "js-confetti";
-
-const initrow = ref(10);
-const initcol = ref(10);
+import { MyData } from "./modal/InputData.ts";
+// const currentpng = ref("c:/Users/wwwhu/AppData/Local/Temp/SGPicFaceTpBq/38324/0FD5FC5F.png");
+const props = defineProps<{
+  modelValue: MyData;
+}>();
+const myData = reactive<MyData>(props.modelValue);
+const miness = ref(myData.mines ?? 10);
+const initrow = ref(myData.row ?? 10);
+const initcol = ref(myData.col ?? 10);
 const buttonRefs = ref<HTMLButtonElement[][]>([]);
-const miness = ref(10);
+const restart = ref(true);
 const confetti = new JSConfetti();
-
+const clickCount = ref(0);
 //遊戲狀態
 const gameStaus = ref(0);
+
 function CheckMines(row: number, col: number) {
   // console.log(buttonRefs);
   if (gameStaus.value == 0) {
     setMines(row, col);
+    gameStaus.value = 1;
   }
-  gameStaus.value = 1;
   if (gameStaus.value == 1) {
     Mineclearance(row, col);
   }
+  if (gameStaus.value < 3) clickCount.value = clickCount.value + 1;
 }
 function setButtonRef(el: any, row: number, col: number) {
   if (!buttonRefs.value[row]) {
@@ -52,12 +77,15 @@ function setButtonRef(el: any, row: number, col: number) {
 //設定左鍵爬雷
 function Mineclearance(row: number, col: number) {
   const currentButton = buttonRefs.value[row][col];
+
+  if (currentButton.classList.contains("isFlag")) {
+    return;
+  }
   if (currentButton.classList.contains("isOpen")) {
     return;
   } else if (currentButton.classList.contains("isNextMines")) {
     currentButton.classList.remove("isSave");
     currentButton.classList.add("isOpen");
-
     for (let j = row - 1; j <= row + 1; j++) {
       for (let k = col - 1; k <= col + 1; k++) {
         if (
@@ -85,9 +113,8 @@ function Mineclearance(row: number, col: number) {
   } else if (currentButton.classList.contains("isMine")) {
     //爆炸顯示全部雷
     gameStaus.value = 3;
-
+    clickCount.value = clickCount.value + 1;
     confetti.addConfetti();
-
     return;
   }
 
@@ -101,9 +128,7 @@ function Mineclearance(row: number, col: number) {
         !(row === i && col === j)
       ) {
         //九宮格內
-        //有數字
         //沒有則繼續爬安全區
-        console.log(i, j);
         let nextbutton = buttonRefs.value[i][j];
         if (
           nextbutton.textContent != null &&
@@ -119,6 +144,16 @@ function Mineclearance(row: number, col: number) {
   }
 }
 //設定右鍵 下旗
+function handleRightClick(row: number, col: number) {
+  let currentButton = buttonRefs.value[row][col];
+  if (!currentButton.classList.contains("isOpen")) {
+    if (!currentButton.classList.contains("isFlag")) {
+      currentButton.classList.add("isFlag");
+    } else {
+      currentButton.classList.remove("isFlag");
+    }
+  }
+}
 //設定地雷
 function setMines(clickrow: number, clickcol: number) {
   let max = miness.value;
@@ -164,8 +199,6 @@ function setMines(clickrow: number, clickcol: number) {
     }
   }
 }
-//搜尋地雷
-//賦值按鈕
 </script>
 <!-- 點擊後#155c9e 點擊前  white-->
 <style scoped>
@@ -181,8 +214,8 @@ function setMines(clickrow: number, clickcol: number) {
   position: relative; /* 相对定位 */
   white-space: nowrap;
   text-align: center;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   background-color: #e3ecf7;
   border-radius: 5px;
   margin: 1px;
@@ -203,5 +236,8 @@ function setMines(clickrow: number, clickcol: number) {
 .isNextMines {
   align-self: stretch; /* 讓按鈕充滿父容器的高度 */
   color: transparent;
+}
+.bordbase .isFlag {
+  background-color: chartreuse;
 }
 </style>
