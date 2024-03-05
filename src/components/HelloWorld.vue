@@ -1,6 +1,6 @@
 <template>
   <div class="bordbase">
-    <div style="display: flex;" v-for="i in initrow" :key="{ i }">
+    <div style="display: flex" v-for="i in initrow" :key="i">
       <button
         :class="{
           isMine: false,
@@ -27,7 +27,7 @@ import JSConfetti from "js-confetti";
 
 const initrow = ref(10);
 const initcol = ref(10);
-const buttonRefs = ref([]);
+const buttonRefs = ref<HTMLButtonElement[][]>([]);
 const miness = ref(10);
 const confetti = new JSConfetti();
 
@@ -45,7 +45,7 @@ function CheckMines(row: number, col: number) {
 }
 function setButtonRef(el: any, row: number, col: number) {
   if (!buttonRefs.value[row]) {
-    buttonRefs.value[row] = {};
+    buttonRefs.value[row] = [];
   }
   buttonRefs.value[row][col] = el;
 }
@@ -69,8 +69,8 @@ function Mineclearance(row: number, col: number) {
         ) {
           let this_isMine = buttonRefs.value[j][k].classList.contains("isMine");
           if (this_isMine) {
-            let setNumBtn = buttonRefs.value[row][col];
-            let minesValue = isNaN(parseInt(setNumBtn.textContent))
+            let setNumBtn: any = buttonRefs.value[row][col];
+            let minesValue: number = isNaN(parseInt(setNumBtn.textContent))
               ? 1
               : parseInt(setNumBtn.textContent) + 1;
             setNumBtn.textContent = minesValue;
@@ -105,7 +105,10 @@ function Mineclearance(row: number, col: number) {
         //沒有則繼續爬安全區
         console.log(i, j);
         let nextbutton = buttonRefs.value[i][j];
-        if (nextbutton.textContent.length > 0) {
+        if (
+          nextbutton.textContent != null &&
+          nextbutton.textContent.length > 0
+        ) {
           currentButton.classList.remove("isSave");
           nextbutton.classList.add("isOpen");
         } else {
