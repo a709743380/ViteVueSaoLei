@@ -1,5 +1,5 @@
 <template>
-  {{ myData }}
+  <!-- {{ myData }} -->
   <HelloWorld :modelValue="myData" :key="componentKey" />
   <InputData @update="setMines" />
 </template>

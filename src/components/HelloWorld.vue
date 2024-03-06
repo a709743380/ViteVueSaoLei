@@ -2,7 +2,7 @@
   <div class="bordbase">
     <div style="display: flex">
       <div style="width: 33%; height: 80px">
-        <span>旗子不限制{{ miness }}</span>
+        <span>炸彈數量{{ miness }}</span>
       </div>
       <div style="width: 33%; height: 80px">
         <!-- <img :src="currentpng" /> -->
@@ -47,6 +47,7 @@ const props = defineProps<{
   modelValue: MyData;
 }>();
 const myData = reactive<MyData>(props.modelValue);
+
 const miness = ref(myData.mines ?? 20);
 const initrow = ref(myData.row ?? 10);
 const initcol = ref(myData.col ?? 10);
@@ -117,7 +118,6 @@ function Mineclearance(row: number, col: number) {
     confetti.addConfetti();
     return;
   }
-
   for (let i = row - 1; i <= row + 1; i++) {
     for (let j = col - 1; j <= col + 1; j++) {
       if (
@@ -157,6 +157,9 @@ function handleRightClick(row: number, col: number) {
 //設定地雷
 function setMines(clickrow: number, clickcol: number) {
   let max = miness.value;
+  if (max == 1 && initrow.value == max && initcol.value == max) {
+    return;
+  }
   for (let i = 0; i < max; i++) {
     let minesrow = Math.ceil(Math.random() * initrow.value);
     let minescol = Math.ceil(Math.random() * initcol.value);

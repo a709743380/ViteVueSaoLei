@@ -1,33 +1,33 @@
 <template>
   <div class="baseInput">
     <div>
-      <lable>雷數:</lable>
+      <span>雷數:</span>
       <input
         type="number"
-        v-model="modelValue.mines"
-        @input="handleInput($event, 'mines', computeMax, computeMax / 5)"
-        :min="computeMax / 5"
+        :min="0"
         :max="computeMax"
+        v-model.lazy="modelValue.mines"
+        @change="handleInputChange('mines', computeMax, 0)"
       />
     </div>
     <div>
-      <lable>欄數:</lable>
+      <span>欄數:</span>
       <input
         type="number"
         :min="1"
         :max="15"
-        @input="handleInput($event, 'row', 15)"
-        v-model="modelValue.row"
+        v-model.lazy="modelValue.row"
+        @change="handleInputChange('row', 15)"
       />
     </div>
     <div>
-      <lable>排數:</lable>
+      <span>排數:</span>
       <input
         type="number"
         :min="1"
         :max="30"
-        v-model="modelValue.col"
-        @input="handleInput($event, 'col', 30)"
+        v-model.lazy="modelValue.col"
+        @change="handleInputChange('col', 30)"
       />
     </div>
   </div>
@@ -42,6 +42,7 @@
   >
     設定遊戲數值
   </button>
+  <p>{{ modelValue }}</p>
 </template>
 
 <script lang="ts" setup>
@@ -51,31 +52,19 @@ const modelValue = reactive<MyData>({ mines: 10, row: 10, col: 10 });
 
 const computeMax = computed(() => {
   let tempMines = (modelValue.row ?? 10) * (modelValue.col ?? 10);
-  let result = tempMines - Math.ceil((tempMines * 4) / 5);
-  modelValue.mines = result;
+  let result = Math.floor((tempMines * 4) / 5);
+  modelValue.mines = 0;
   return result;
 });
 const emits = defineEmits(["update"]);
-function handleInput(e: any, property: string, max: number, min: number = 1) {
-  let mincheck = e.target.value <= 0;
-  if (mincheck) {
-    if (property == "row") {
-      modelValue.row = min;
-    } else if (property == "col") {
-      modelValue.col = min;
-    } else if (property == "mines") {
-      modelValue.mines = min;
-    }
+function handleInputChange(property: string, max: number, min: number = 1) {
+  let newValue = modelValue[property as keyof MyData] ?? NaN;
+  if (isNaN(parseInt(newValue.toString())) || newValue <= min) {
+    newValue = min;
   } else {
-    let check = e.target.value > max;
-    if (property == "row") {
-      modelValue.row = check ? max : e.target.value;
-    } else if (property == "col") {
-      modelValue.col = check ? max : e.target.value;
-    } else if (property == "mines") {
-      modelValue.mines = check ? max : e.target.value;
-    }
+    newValue = newValue > max ? max : newValue;
   }
+  modelValue[property as keyof MyData] = newValue;
 }
 function emitValue() {
   emits("update", modelValue);
